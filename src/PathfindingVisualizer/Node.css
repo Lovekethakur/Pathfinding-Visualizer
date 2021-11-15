@@ -1,0 +1,157 @@
+/* .node{
+    transform: scale(-0.5px) ;
+    width: 25px;
+    height: 25px;
+    outline: 1px solid rgb(175, 216, 248);
+    display: table-cell;
+    vertical-align: inherit;
+  } */
+
+  table {
+    border-collapse: collapse;
+    margin: 0 10px 0 10px;
+  }
+  
+  td {
+    padding: 0;
+    transform: scale(-0.5px);
+    border: 1px solid rgb(175, 216, 248);
+    width: 25px;
+    height: 25px;
+  }
+  
+
+  /* div{
+    padding: 0px;
+    margin: 0px;
+    margin-bottom: 0px;
+    padding-bottom: 0px    
+} */
+.start-node{
+  /* background-color: lime; */
+  /* https://static.thenounproject.com/png/1677182-200.png */
+  background-image: url(https://www.glyphicons.com/img/glyphicons/humans/2x/glyphicons-humans-82-moving@2x.png);
+  background-size: 28px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  animation: opacity 0.3s ease-in;
+}
+.finish-node{
+  /* background-color: blue; */
+  background-image: url(https://image.flaticon.com/icons/png/512/67/67872.png);
+  /* background-position-x: center; */
+  background-size: 23px;
+  background-position: center center;
+  background-repeat:no-repeat ;
+  /* outline:none; */
+  animation: opacity 0.3s ease-in;
+}
+.wall-node{
+  /* background-color: rgb(12, 53, 71); */
+  border: 0;
+  padding: 0;
+  outline:none;
+  animation-name: wall-animation;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+  /* animation: wall-animation 0.3s ease-in; */
+}
+.weight-node{
+  background-image: url(https://www.glyphicons.com/img/glyphicons/basic/2x/glyphicons-basic-734-kettlebell@2x.png);
+  background-size: 27px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  animation: opacity 0.3s ease-in;
+ 
+}
+.visited{
+  background-color: rgba(0, 190, 218, 0.75);
+  animation: visited-nodes-animation 0.5s ease-out;
+}
+
+
+.node-shortest-path {
+  border: 0;
+  padding: 0;
+  background-color:  rgb(255, 254, 106);
+  outline:none;
+  animation: shortest-path-animation 0.8s ease-out;
+}
+
+
+@keyframes wall-animation{
+  0% {
+    transform: scale(.3);
+    background-color: rgb(12, 53, 71);
+  }
+
+  50% {
+    transform: scale(1.2);
+    background-color: rgb(12, 53, 71);
+  }
+
+  100% {
+    transform: scale(1.0);
+    background-color: rgb(12, 53, 71);
+  }
+}
+@keyframes weight-animation{
+  0%{
+    background-color: #fff;
+    outline: 1px solid rgb(175, 216, 248); 
+    
+  }
+  100%{
+    background-color:rgb(255, 254, 106);
+    outline:none;
+   
+  }
+}
+@keyframes visited-nodes-animation{
+  0% {
+    transform: scale(.3);
+    background-color: rgba(0, 0, 66, 0.75);
+    border-radius: 100%;
+  }
+
+  50% {
+    background-color: rgba(17, 104, 217, 0.75);
+  }
+
+  75% {
+    transform: scale(1.2);
+    background-color: rgba(0, 217, 159, 0.75)
+  }
+
+  100% {
+    transform: scale(1.0);
+    background-color: rgba(0, 190, 218, 0.75);
+  }
+}
+@keyframes shortest-path-animation{
+  0%{
+    transform: scale(0.8);
+    /* outline: 1px solid white;  */
+  }
+  50%{
+    transform: scale(1.2);
+  }
+  100%{
+    transform: scale(1);
+    /* outline:none; */
+  }
+}
+@keyframes opacity{
+  0%{
+    opacity:0.3;
+  }
+  100%{
+    opacity: 1;
+  }
+}
+
