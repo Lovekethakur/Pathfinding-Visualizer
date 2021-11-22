@@ -8,7 +8,6 @@ export default class Node extends Component{
             col,
             row,
             type,
-            // isVisited,
             onMouseDown,
             onMouseEnter,
             onMouseUp,
@@ -20,6 +19,7 @@ export default class Node extends Component{
                              type==='wall'?'wall-node':
                              type==='weight'?'weight-node':
                              ""
+                             
 
         
                            

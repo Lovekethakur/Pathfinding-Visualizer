@@ -78,7 +78,7 @@ i{
     padding: 6px 9px;
   } */
   
-.clear-walls, clear-path{
+.clear-walls{
   font-size: 14px;  
   border: none;
   border-radius: 4px;
@@ -88,6 +88,9 @@ i{
   /* border: 1px; */
   padding: 8px 16px;
   background-color: #1abc9c;
+}
+.clear-walls:active{
+  opacity: 0.8;
 }
 
 /* a{

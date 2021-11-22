@@ -95,11 +95,7 @@ export function getShortestAstarPath(finishNode) {
   let currentNode = finishNode;
   while (currentNode !== null) {
     nodesInShortestPathOrder.unshift(currentNode);
-    if(currentNode!==undefined){
       currentNode = currentNode.previousNode;
-    }else{
-      console.log(nodesInShortestPathOrder)
-      return nodesInShortestPathOrder;
     }
+    return nodesInShortestPathOrder;
   }
-}

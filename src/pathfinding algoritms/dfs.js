@@ -41,12 +41,8 @@ export function getShortestDFSPath(finishNode){
     let currentNode = finishNode;
     while (currentNode !== null) {
       nodesInShortestPathOrder.unshift(currentNode);
-      if(currentNode!==undefined){
       currentNode = currentNode.previousNode;
-    } else{
-      return nodesInShortestPathOrder;
-    }
   }
-    
+  return nodesInShortestPathOrder;
 }
 

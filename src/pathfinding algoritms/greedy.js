@@ -9,7 +9,7 @@ export function greedy(grid,startNode,finishNode){
     while(!!unVisitedNodes.length){
         sortNodesByDistance(unVisitedNodes)
         const closestNode = unVisitedNodes.shift();
-        if(closestNode.type==='wall')continue
+        if(closestNode.type==='wall' || closestNode.type==='weight')continue
         if (closestNode.distance === Infinity) return visitedNodesInOrder;
         closestNode.isVisited=true
         visitedNodesInOrder.push(closestNode);
@@ -30,11 +30,7 @@ export function greedy(grid,startNode,finishNode){
  function updateUnvisitedNeighbors(node, grid,finishNode) {
      const unvisitedNeighbors = getUnvisitedNeighbors(node, grid);
      for (const neighbor of unvisitedNeighbors) {
-       if(neighbor.type==='weight'){
-         neighbor.distance=getManhattanDistance(neighbor,finishNode)+5
-       }else{
          neighbor.distance=getManhattanDistance(neighbor,finishNode)
-       }
       
        neighbor.previousNode = node;
      }
@@ -68,12 +64,8 @@ export function greedy(grid,startNode,finishNode){
      let currentNode = finishNode;
      while (currentNode !== null) {
        nodesInShortestPathOrder.unshift(currentNode);
-       if(currentNode!==undefined){
          currentNode = currentNode.previousNode;
-       }else{
-         // console.log(nodesInShortestPathOrder)
-         return nodesInShortestPathOrder;
        }
+       return nodesInShortestPathOrder;
      }
- }
  

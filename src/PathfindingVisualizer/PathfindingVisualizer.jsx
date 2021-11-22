@@ -7,9 +7,7 @@ import {astar ,getShortestAstarPath} from '../pathfinding algoritms/astar';
 import {bfs,getShortestBFSPath} from '../pathfinding algoritms/bfs';
 import {dfs,getShortestDFSPath} from '../pathfinding algoritms/dfs';
 import {greedy,getShortestGreedyPath} from '../pathfinding algoritms/greedy';
-// import {bidirectionalSearch,
-//     getBidirectionalShortestPath} from '../pathfinding algoritms/bidirectionalSearch';
-  
+import {bidirectionalGreedySearch,getNodesInShortestPathOrderBidirectionalGreedySearch,} from '../pathfinding algoritms/bidirectionalSearch';
 import randomMaze from '../maze algoritms/randomMaze'
 import  recursiveDivisionMaze  from '../maze algoritms/recursiveMaze';
 import  recursiveBacktracker  from '../maze algoritms/recursiveBacktracker';
@@ -20,10 +18,8 @@ let startNodeRow = 10;
 let startNodeCol = 10;
 let finishNodeRow = 10;
 let finishNodeCol = 40;
-
 let algorithmRunning=false
 let algorithmSpeed=10;
-
 let wIsPressed=false
 
 export default class PathfinidingVisualizer extends Component{
@@ -55,69 +51,65 @@ export default class PathfinidingVisualizer extends Component{
    
     
     handleMouseDown(row,col,type){
-        let newGrid
-        if(algorithmRunning)return
-        console.log("1");
-        switch (type) {
-            case 'normal-node':
-                if(wIsPressed){
-                    newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,'weight')
-                    this.setState({grid: newGrid,mouseIsPressed:true,nodeToChange:'weight'})
-                    break 
-                }else{
-                    newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,'wall')
-                    this.setState({grid: newGrid,mouseIsPressed:true,nodeToChange:'wall'})
-                }
-                break;
-            case 'wall':
-                newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,'normal-node')
-                this.setState({grid: newGrid,mouseIsPressed:true,nodeToChange:'normal-node'})
-                break;
-            case 'start':
-                this.setState({mouseIsPressed:true, nodeToChange:'start'})
-                
-                break;
-            case 'finish':
-                this.setState({mouseIsPressed:true, nodeToChange:'finish'})
-                break;
-            default:
-               
-                break;
-        }
-   
-    }
-    handleMouseEnter(row,col,type){
-        console.log("2");
-        if(algorithmRunning)return
-        if(!this.state.mouseIsPressed)return
-        if(type==='wall'||type==='normal-node'){
-            let newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,this.state.nodeToChange)
-            this.setState({grid: newGrid});
-        }  
+      let newGrid
+      if(algorithmRunning)return
+      
+      switch (type) {
+          case 'normal-node':
+              if(wIsPressed){
+                  newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,'weight')
+                  this.setState({grid: newGrid,mouseIsPressed:true,nodeToChange:'weight'})
+                  break 
+              }else{
+                  newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,'wall')
+                  this.setState({grid: newGrid,mouseIsPressed:true,nodeToChange:'wall'})
+              }
+              break;
+          case 'wall':
+              newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,'normal-node')
+              this.setState({grid: newGrid,mouseIsPressed:true,nodeToChange:'normal-node'})
+              break;
+          case 'start':
+              this.setState({mouseIsPressed:true, nodeToChange:'start'})
+              
+              break;
+          case 'finish':
+              this.setState({mouseIsPressed:true, nodeToChange:'finish'})
+              break;
+          default:
+             
+              break;
+      }
+ 
+  }
+  handleMouseEnter(row,col,type){
+      if(algorithmRunning)return
+      if(!this.state.mouseIsPressed)return
+      let newGrid;
+      if(type==='wall'||type==='normal-node'){
+          newGrid = getNewGridWithNewNodeType(this.state.grid,row,col,this.state.nodeToChange)
+          
+          this.setState({grid: newGrid});
+      }
     } 
-
-    
-    handleMouseUp(){
-        console.log("3");
-        this.setState({mouseIsPressed: false});
-    }
-    handleMouseLeave(row,col,type){
-        console.log("4");
-        let newGrid
-        if(!this.state.mouseIsPressed)return
-        if((type==='start'||type==='finish')&&this.state.nodeToChange!=='wall'){
-            newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,'normal-node')
-            this.setState({grid: newGrid}); 
-        }
-    }
+  handleMouseUp(){
+      this.setState({mouseIsPressed: false});
+  }
+  handleMouseLeave(row,col,type){
+      let newGrid;
+      if(!this.state.mouseIsPressed)return
+      if((type==='start'||type==='finish')&&this.state.nodeToChange!=='wall'){
+        newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,'normal-node');
+          this.setState({grid: newGrid});   
+      }
+      
+  }
 
     visualizeAlgorithm(algorithm) {
-    //    this.clearPath(this.state.grid) comment Me
         switch (algorithm) {
             case 0:
                 break;
             case 1:
-            //this.visualizeDijkstra(startNode, finishNode); comment Me
                 this.findPath(dijkstra,getShortestDijkstraPath);
             break;
             case 2:
@@ -134,22 +126,125 @@ export default class PathfinidingVisualizer extends Component{
             case 5:
                 this.findPath(greedy,getShortestGreedyPath);
             break;
+            case 6:
+                this.visualizeBidirectionalGreedySearch();
+            break;
           default:
               break
         }
-        // algorithmRunning=false comment Me
       }
-     
-  
-    findPath(algorithmCallback,getShortestPathCallback) {
-        // this.setState({algorithmRunning:true}) comment Me
-       
-        let startNode = getNodeByType(this.state.grid,'start')
-        let finishNode =getNodeByType(this.state.grid,'finish')
+     //bidirectional
 
+     visualizeBidirectionalGreedySearch() {
+        setTimeout(() => {
+          const { grid } = this.state;
+          let startNode = getNodeByType(this.state.grid,'start')
+          let finishNode =getNodeByType(this.state.grid,'finish')
+          const visitedNodesInOrder = bidirectionalGreedySearch(
+            grid,
+            startNode,
+            finishNode
+          );
+          const visitedNodesInOrderStart = visitedNodesInOrder[0];
+          const visitedNodesInOrderFinish = visitedNodesInOrder[1];
+          const isShortedPath = visitedNodesInOrder[2];
+          const nodesInShortestPathOrder = getNodesInShortestPathOrderBidirectionalGreedySearch(
+            visitedNodesInOrderStart[visitedNodesInOrderStart.length - 1],
+            visitedNodesInOrderFinish[visitedNodesInOrderFinish.length - 1]
+          );
+          this.animateBidirectionalAlgorithm(
+            visitedNodesInOrderStart,
+            visitedNodesInOrderFinish,
+            nodesInShortestPathOrder,
+            isShortedPath
+          );
+        }, algorithmSpeed);
+      }
+
+      animateBidirectionalAlgorithm(
+        visitedNodesInOrderStart,
+        visitedNodesInOrderFinish,
+        nodesInShortestPathOrder,
+        isShortedPath
+      ) {
+        let len = Math.max(
+          visitedNodesInOrderStart.length,
+          visitedNodesInOrderFinish.length+1
+        );
+        for (let i = 0; i <= len; i++) {
+          let nodeA = visitedNodesInOrderStart[i];
+          let nodeB = visitedNodesInOrderFinish[i];
+          if (i === visitedNodesInOrderStart.length) {
+            setTimeout(() => {
+              let visitedNodesInOrder = getVisitedNodesInOrder(
+                visitedNodesInOrderStart,
+                visitedNodesInOrderFinish
+              );
+              if (isShortedPath) {
+                this.animateShortestPath1(
+                  nodesInShortestPathOrder,
+                  visitedNodesInOrder
+                );
+              } else {
+                this.setState({ visualizingAlgorithm: false });
+              }
+            }, i * algorithmSpeed);
+            return;
+          }
        
+            //visited nodes
+            if (nodeA !== undefined){
+                
+            const nodeComponentA=document.getElementById(`node-${nodeA.row}-${nodeA.col}`);
+        setTimeout(() => {
+            nodeComponentA.classList.add('node-visiting');
+        }, algorithmSpeed * (i - 0.8));
+          setTimeout(() => {
+            nodeComponentA.classList.add('visited')
+          }, algorithmSpeed * i);
+        }
+            if (nodeB !== undefined){
+            
+            const nodeComponentB=document.getElementById(`node-${nodeB.row}-${nodeB.col}`);
+        setTimeout(() => {
+            nodeComponentB.classList.add('node-visiting');
+        }, algorithmSpeed * (i - 0.8));
+          setTimeout(() => {
+            nodeComponentB.classList.add('visited')
+          }, algorithmSpeed * i);
+        }
         
-        
+        }
+      }
+
+      animateShortestPath1 = (nodesInShortestPathOrder, visitedNodesInOrder) => {
+        if (nodesInShortestPathOrder.length === 1)
+          this.setState({ visualizingAlgorithm: false });
+        for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
+          setTimeout(() => {
+            //shortest path node
+            let node = nodesInShortestPathOrder[i];
+            if(document.getElementById(`node-${node.row}-${node.col}`).className ===
+            "node start-node node-visiting visited"){
+                document.getElementById(`node-${node.row}-${node.col}`).className =
+            "node start-node node-visiting visited node-shortest-path";
+            }
+            else if(document.getElementById(`node-${node.row}-${node.col}`).className ===
+            "node finish-node node-visiting visited"){
+                document.getElementById(`node-${node.row}-${node.col}`).className =
+            "node finish-node node-visiting visited node-shortest-path";
+            }
+            else{
+            document.getElementById(`node-${node.row}-${node.col}`).className =
+              "node node-visiting visited node-shortest-path";}
+          }, i * 50);
+        }
+      };
+
+      //bidirectional
+    findPath(algorithmCallback,getShortestPathCallback) {
+        let startNode = getNodeByType(this.state.grid,'start');
+        let finishNode =getNodeByType(this.state.grid,'finish');
         const visitedNodesInOrder = algorithmCallback(
             this.state.grid,
             startNode,
@@ -160,7 +255,6 @@ export default class PathfinidingVisualizer extends Component{
         const nodeInShortestPath=getShortestPathCallback(finishNode)
         
         this.animateAlgorithm(visitedNodesInOrder,nodeInShortestPath);
-       // algorithmRunning=false comment Me
     }
      
     animateAlgorithm(visitedNodesInOrder,nodesInShortestPathOrder) {
@@ -184,18 +278,15 @@ export default class PathfinidingVisualizer extends Component{
         }
       }
       animateShortestPath(nodesInShortestPathOrder) {
-        for (let i = 1; i < nodesInShortestPathOrder.length; i++) {
+        for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
           setTimeout(() => {
             const node = nodesInShortestPathOrder[i];
-            // if(document.getElementById(`node-${node.row}-${node.col}`).className =
-            // 'node node-visiting')
             document.getElementById(`node-${node.row}-${node.col}`).classList.add('node-shortest-path')
           }, 50 * i);
         }
       
       }
       visualizeMaze(algorithm) {
-        // this.clearWallsAndWeights(this.state.grid) comment Me
         let newGrid
         switch (algorithm) {
             case 0:
@@ -254,7 +345,7 @@ export default class PathfinidingVisualizer extends Component{
         for (const row of newGrid) {
             for (const node of row) {
                console.log(node)
-               if(node.type==type){
+               if(node.type===type){
                 node.type="normal-node"
                
                } 
@@ -265,9 +356,6 @@ export default class PathfinidingVisualizer extends Component{
   
 
     clearBoard(){
-        if (this.state.visualizingAlgorithm || this.state.generatingMaze) {
-            return;
-        }
         for (let row = 0; row < this.state.grid.length; row++) {
             for (let col = 0; col < this.state.grid[0].length; col++) {
                 if(row === startNodeRow && col === startNodeCol){
@@ -291,33 +379,41 @@ export default class PathfinidingVisualizer extends Component{
         
     clearPath(){
             let newGrid=this.state.grid.slice();
-        for (let row = 0; row < this.state.grid.length; row++) {
-            for (let col = 0; col < this.state.grid[0].length; col++) {
-                
+            for (let row = 0; row < this.state.grid.length; row++) {
+                for (let col = 0; col < this.state.grid[0].length; col++) {
                 if(document.getElementById(`node-${row}-${col}`).className === "node start-node node-visiting visited node-shortest-path") {
                     document.getElementById(`node-${row}-${col}`).className = "node start-node";
-                    newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,"start");
                 }
-                else if(document.getElementById(`node-${row}-${col}`).className === "node finish-node node-visiting visited node-shortest-path"){
+                else if((document.getElementById(`node-${row}-${col}`).className === "node finish-node node-visiting visited node-shortest-path") || (document.getElementById(`node-${row}-${col}`).className === "node finish-node node-shortest-path")){
                     
                     document.getElementById(`node-${row}-${col}`).className = "node finish-node";
-                    newGrid=getNewGridWithNewNodeType(this.state.grid,row,col,"finish");
                 } 
                 else if((document.getElementById(`node-${row}-${col}`).className === "node node-visiting visited node-shortest-path") || (document.getElementById(`node-${row}-${col}`).className === "node node-visiting visited")){
                     
                     document.getElementById(`node-${row}-${col}`).className = "node";
-                    newGrid[row][col]=getNewGridWithNewNodeType(this.state.grid,row,col,"node");
-                }
                 
-            }
-        }
-        this.setState({grid:newGrid});
-    }
+                 }
+                const node = newGrid[row][col];
+                const newNode = {
+                  ...node,
+                  distance:Infinity,
+                  isVisited:false,//djkstra
+                  previousNode:null,//djkstra, BFS
+                  gScore:Infinity,//astar
+                  fScore:Infinity,//astar
+                  hScore:null,//astar
+                  closed:false
+                };
 
-    
-        
-    
-    
+                newGrid[row][col] = newNode;
+                this.setState({
+                  grid: newGrid,
+                  
+              });
+            }
+            
+        }
+    }
     
 
     render(){        
@@ -337,7 +433,7 @@ export default class PathfinidingVisualizer extends Component{
                         <button onClick={() => this.visualizeAlgorithm(3)}>Breadth First Search</button>
                         <button onClick={() => this.visualizeAlgorithm(4)}>Depth First Search</button>
                         <button onClick={() => this.visualizeAlgorithm(5)}>Greedy Best First Search</button>
-                        
+                        <button onClick={() => this.visualizeAlgorithm(6)}>Bidirectional Greedy Search</button>
                     </div>
                     
                 </div>
@@ -399,7 +495,7 @@ export default class PathfinidingVisualizer extends Component{
                     return (
                     <tr key={rowIdx}>
                         {row.map((node, nodeIdx) => {
-                            const{row,col,type,isVisited,distance,gScore,fScore,hScore,closed}=node
+                            const{row,col,type,isPath,isVisited,distance,gScore,fScore,hScore,closed}=node
                         
                         return (
                             <Node 
@@ -407,8 +503,7 @@ export default class PathfinidingVisualizer extends Component{
                             row={row}
                             col={col}
                             type={type}
-                            //isWall={isWall} comment Me
-                          
+                            isPath={isPath}
                             isVisited={isVisited}
                             distance={distance}
                             gScore={gScore}
@@ -433,30 +528,6 @@ export default class PathfinidingVisualizer extends Component{
    
 }
 
-// const clearPath=(grid)=>{
-//     let newGrid=grid.slice();
-//         for (let row = 0; row < grid.length; row++) {
-//             for (let col = 0; col < grid[0].length; col++) {
-                
-//                 if(document.getElementById(`node-${row}-${col}`).className === "node start-node visited node-shortest-path") {
-//                     // newGrid[row][col].className="node start-node"; 
-//                     document.getElementById(`node-${row}-${col}`).className = "node start-node";
-//                 }
-//                 else if(document.getElementById(`node-${row}-${col}`).className === "node finish-node visited node-shortest-path"){
-//                     // newGrid[row][col].className="node finish-node"; 
-//                     document.getElementById(`node-${row}-${col}`).className = "node finish-node";
-//                 } 
-//                 else if((document.getElementById(`node-${row}-${col}`).className === "node visited node-shortest-path") || (document.getElementById(`node-${row}-${col}`).className === "node visited")){
-//                     // newGrid[row][col].className="node";
-//                     document.getElementById(`node-${row}-${col}`).className = "node";
-//                 }
-                
-//             }
-//         }
-//         return newGrid;}
-
-
-
 const initializeGrid=()=>{
     const grid=[]
     for (let row = 0; row < 21; row++) {
@@ -479,7 +550,10 @@ const getNode=(row,col)=>{
         type,
         weightValue:1,
         isVisited: false,
+        isWall:false,
+        isPath:false,
         distance:Infinity,//djkstra
+        previousNode:null,//djkstra,BFS
         gScore:Infinity,//astar
         fScore:Infinity,//astar
         hScore:null,//astar
@@ -492,8 +566,7 @@ const getNewGridWithNewNodeType = (grid, row, col,newType) => {
   const node = newGrid[row][col];
  
   const newNode = {
-    ...node,
-    // isWall:!node.isWall, 
+    ...node, 
     type:newType,
   };
   newGrid[row][col] = newNode;
@@ -501,7 +574,7 @@ const getNewGridWithNewNodeType = (grid, row, col,newType) => {
   return newGrid;
 };
 
-//This function iterates trought the array and reuturns a node with a given type comment Me
+//This function iterates trought the array and reuturns a node with a given type
 const getNodeByType =(grid,givenType)=>{
   
     for (const row of grid) {
@@ -518,3 +591,25 @@ const getNodeByType =(grid,givenType)=>{
 function changeAlgoritmSpeed(speed){
     algorithmSpeed=speed
 }
+
+
+const getVisitedNodesInOrder = (
+    visitedNodesInOrderStart,
+    visitedNodesInOrderFinish
+  ) => {
+    let visitedNodesInOrder = [];
+    let n = Math.max(
+      visitedNodesInOrderStart.length,
+      visitedNodesInOrderFinish.length
+    );
+    for (let i = 0; i < n; i++) {
+      if (visitedNodesInOrderStart[i] !== undefined) {
+        visitedNodesInOrder.push(visitedNodesInOrderStart[i]);
+      }
+      if (visitedNodesInOrderFinish[i] !== undefined) {
+        visitedNodesInOrder.push(visitedNodesInOrderFinish[i]);
+      }
+    }
+    return visitedNodesInOrder;
+  };
+  

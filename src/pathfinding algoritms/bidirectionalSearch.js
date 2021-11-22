@@ -1,103 +1,135 @@
-export function bidirectionalSearch(grid, startNode, finishNode) {
-  if(!startNode || !finishNode || startNode === finishNode)
-      return false
-
-  const visitedNodes = []
-  const queue1 = [startNode]
-  const queue2 = [finishNode]
-  while(queue1.length !== 0 && queue2.length !== 0){
-      const fromStart = queue1.shift()
-      const fromFinish = queue2.shift()
-      if(fromFinish.isVisited){
-          console.log(fromFinish)
-          visitedNodes.push(fromFinish)
-          return visitedNodes
+export function bidirectionalGreedySearch(grid, startNode, finishNode) {
+    if (!startNode || !finishNode || startNode === finishNode) {
+      return false;
+    }
+    let unvisitedNodesStart = [];
+    let visitedNodesInOrderStart = [];
+    let unvisitedNodesFinish = [];
+    let visitedNodesInOrderFinish = [];
+    startNode.distance = 0;
+    finishNode.distance = 0;
+    unvisitedNodesStart.push(startNode);
+    unvisitedNodesFinish.push(finishNode);
+  
+    while (
+      unvisitedNodesStart.length !== 0 &&
+      unvisitedNodesFinish.length !== 0
+    ) {
+      unvisitedNodesStart.sort((a, b) => a.totalDistance - b.totalDistance);
+      unvisitedNodesFinish.sort((a, b) => a.totalDistance - b.totalDistance);
+      let closestNodeStart = unvisitedNodesStart.shift();
+      let closestNodeFinish = unvisitedNodesFinish.shift();
+  
+      closestNodeStart.isVisited = true;
+      closestNodeFinish.isVisited = true;
+      visitedNodesInOrderStart.push(closestNodeStart);
+      visitedNodesInOrderFinish.push(closestNodeFinish);
+      if (isNeighbour(closestNodeStart, closestNodeFinish)) {
+        return [visitedNodesInOrderStart, visitedNodesInOrderFinish, true];
       }
-      if(fromStart.isVisitedFromOther){
-          console.log(fromStart)
-          visitedNodes.push(fromStart)
-          return visitedNodes
+  
+      //Start side search
+      let neighbours = getNeighbours(closestNodeStart, grid);
+      for (let neighbour of neighbours) {
+        if(neighbour.type==='wall' || neighbour.type==='weight') continue;
+        if (!neighbourNotInUnvisitedNodes(neighbour, unvisitedNodesFinish)) {
+          visitedNodesInOrderStart.push(closestNodeStart);
+          visitedNodesInOrderFinish.push(neighbour);
+          return [visitedNodesInOrderStart, visitedNodesInOrderFinish, true];
+        }
+        let distance = closestNodeStart.distance + 1;
+        //f(n) = h(n)
+        if (neighbourNotInUnvisitedNodes(neighbour, unvisitedNodesStart)) {
+          unvisitedNodesStart.unshift(neighbour);
+          neighbour.distance = distance;
+          neighbour.totalDistance = manhattenDistance(neighbour, finishNode);
+          neighbour.previousNode = closestNodeStart;
+        } else if (distance < neighbour.distance) {
+          neighbour.distance = distance;
+          neighbour.totalDistance = manhattenDistance(neighbour, finishNode);
+          neighbour.previousNode = closestNodeStart;
+        }
       }
-      if(fromStart === fromFinish){
-          return visitedNodes
+  
+      //Finish side search
+      neighbours = getNeighbours(closestNodeFinish, grid);
+      for (let neighbour of neighbours) {
+        if(neighbour.type==='wall' || neighbour.type==='weight') continue;
+        if (!neighbourNotInUnvisitedNodes(neighbour, unvisitedNodesStart)) {
+          visitedNodesInOrderStart.push(closestNodeFinish);
+          visitedNodesInOrderStart.push(neighbour);
+          return [visitedNodesInOrderStart, visitedNodesInOrderFinish, true];
+        }
+        let distance = closestNodeFinish.distance + 1;
+        //f(n) = h(n)
+        if (neighbourNotInUnvisitedNodes(neighbour, unvisitedNodesFinish)) {
+          unvisitedNodesFinish.unshift(neighbour);
+          neighbour.distance = distance;
+          neighbour.totalDistance = manhattenDistance(neighbour, startNode);
+          neighbour.previousNode = closestNodeFinish;
+        } else if (distance < neighbour.distance) {
+          neighbour.distance = distance;
+          neighbour.totalDistance = manhattenDistance(neighbour, startNode);
+          neighbour.previousNode = closestNodeFinish;
+        }
       }
-
-      if(fromStart.isVisited && fromFinish.isVisitedFromOther) 
-          continue
-      else if(fromStart.isVisited){
-          fromFinish.isVisitedFromOther = true;
-          visitedNodes.push(fromFinish)
-          const finishNeighbours = getNeighbours(grid, fromFinish, 'from_finish')
-          for(const neighbour of finishNeighbours){
-              neighbour.nextNode = fromFinish
-              queue2.push(neighbour)
-          }
-      }else if(fromFinish.isVisitedFromOther){
-          fromStart.isVisited = true
-          visitedNodes.push(fromStart)
-          const startNeighbours = getNeighbours(grid, fromStart, 'from_start')
-          for(const neighbour of startNeighbours){
-              neighbour.previousNode = fromStart
-              queue1.push(neighbour)
-          }
-      } else{
-          fromFinish.isVisitedFromOther = true
-          visitedNodes.push(fromFinish)
-          const finishNeighbours = getNeighbours(grid, fromFinish, 'from_finish')
-          for(const neighbour of finishNeighbours){
-              neighbour.nextNode = fromFinish
-              queue2.push(neighbour)
-          }
-          fromStart.isVisited = true
-          visitedNodes.push(fromStart)
-          const startNeighbours = getNeighbours(grid, fromStart, 'from_start')
-          for(const neighbour of startNeighbours){
-              neighbour.previousNode = fromStart
-              queue1.push(neighbour)
-          }
-      }
-
+    }
+    return [visitedNodesInOrderStart, visitedNodesInOrderFinish, false];
   }
-  return visitedNodes
-}
-
-function getNeighbours(grid, node, direction){
-  const neighbours = []
-  const {row, col} = node
-  if(row > 0) neighbours.push(grid[row - 1][col])
-  if(row < grid.length - 1) neighbours.push(grid[row + 1][col])
-  if(col > 0) neighbours.push(grid[row][col - 1])
-  if(col < grid[0].length - 1) neighbours.push(grid[row][col + 1])
-
-  if(direction === 'from_start')
-      return neighbours.filter(neighbour => !neighbour.isVisited && !neighbour.isWall)
-  return neighbours.filter(neighbour => !neighbour.isVisitedFromOther && !neighbour.isWall)
-}
-export function getBidirectionalShortestPath(middle1 , finishNode){
-  const pathList = []
-  const path1 = []
-  const path2 = []
   
-  while(middle1 !== null){
-    //   middle1.isPath = true
-      path1.unshift(middle1)
-      if(middle1 !== undefined){
-      middle1 = middle1.previousNode
-  }   else {
-    let middle2 = middle1;
-    while(middle2 !== null){
-        //   middle2.isPath = true
-          path2.push(middle2)
-          if(middle2 !==undefined){
-          middle2 = middle2.nextNode}
-          else{
-            return path1.concat(path2)
-          }
-      }
+  function isNeighbour(closestNodeStart, closestNodeFinish) {
+    let rowStart = closestNodeStart.row;
+    let colStart = closestNodeStart.col;
+    let rowFinish = closestNodeFinish.row;
+    let colFinish = closestNodeFinish.col;
+    if (rowFinish === rowStart - 1 && colFinish === colStart) return true;
+    if (rowFinish === rowStart && colFinish === colStart + 1) return true;
+    if (rowFinish === rowStart + 1 && colFinish === colStart) return true;
+    if (rowFinish === rowStart && colFinish === colStart - 1) return true;
+    return false;
   }
-}
-
   
-
+  function getNeighbours(node, grid) {
+    let neighbours = [];
+    let { row, col } = node;
+    if (row > 0) neighbours.push(grid[row - 1][col]);
+    if (col < grid[0].length - 1) neighbours.push(grid[row][col + 1]);
+    if (row < grid.length - 1) neighbours.push(grid[row + 1][col]);
+    if (col > 0) neighbours.push(grid[row][col - 1]);
+    return neighbours.filter(
+      (neighbour) => !neighbour.isVisited
+    );
+  }
   
-}
+  function manhattenDistance(nodeA, nodeB) {
+    let x = Math.abs(nodeA.row - nodeB.row);
+    let y = Math.abs(nodeA.col - nodeB.col);
+    return x + y;
+  }
+  
+  function neighbourNotInUnvisitedNodes(neighbour, unvisitedNodes) {
+    for (let node of unvisitedNodes) {
+      if (node.row === neighbour.row && node.col === neighbour.col) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  export function getNodesInShortestPathOrderBidirectionalGreedySearch(
+    nodeA,
+    nodeB
+  ) {
+    let nodesInShortestPathOrder = [];
+    let currentNode = nodeB;
+    while (currentNode !== null) {
+      nodesInShortestPathOrder.push(currentNode);
+        currentNode = currentNode.previousNode;
+      }
+    currentNode = nodeA;
+    while (currentNode !== null) {
+      nodesInShortestPathOrder.unshift(currentNode);
+        currentNode = currentNode.previousNode;
+    }
+    return nodesInShortestPathOrder;
+  }

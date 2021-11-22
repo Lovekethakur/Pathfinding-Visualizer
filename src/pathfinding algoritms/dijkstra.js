@@ -11,11 +11,12 @@ export function dijkstra(grid,startNode,finishNode){
        const closestNode = unVisitedNodes.shift();
        if(closestNode.type==='wall')continue
        if (closestNode.distance === Infinity) return visitedNodesInOrder;
+       
        closestNode.isVisited=true
        visitedNodesInOrder.push(closestNode);
 
        updateUnvisitedNeighbors(closestNode, grid);
-       if(closestNode===finishNode)return visitedNodesInOrder
+       if(closestNode===finishNode)return visitedNodesInOrder;
    }
 }
 function getAllNodes(grid){
@@ -58,11 +59,7 @@ export function getShortestDijkstraPath(finishNode) {
     let currentNode = finishNode;
     while (currentNode !== null) {
       nodesInShortestPathOrder.unshift(currentNode);
-      if(currentNode!==undefined){
         currentNode = currentNode.previousNode;
-      }else{
-        // console.log(nodesInShortestPathOrder)
-        return nodesInShortestPathOrder;
-      }
     }
+    return nodesInShortestPathOrder;
 }
