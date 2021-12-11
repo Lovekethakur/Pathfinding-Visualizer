@@ -388,6 +388,11 @@ export default class PathfinidingVisualizer extends Component{
                     
                     document.getElementById(`node-${row}-${col}`).className = "node finish-node";
                 } 
+                else if((document.getElementById(`node-${row}-${col}`).className === "node weight-node node-visiting visited") || (document.getElementById(`node-${row}-${col}`).className === "node weight-node node-visiting visited node-shortest-path")){
+                    
+                    document.getElementById(`node-${row}-${col}`).className = "node weight-node";
+                } 
+                    
                 else if((document.getElementById(`node-${row}-${col}`).className === "node node-visiting visited node-shortest-path") || (document.getElementById(`node-${row}-${col}`).className === "node node-visiting visited")){
                     
                     document.getElementById(`node-${row}-${col}`).className = "node";
